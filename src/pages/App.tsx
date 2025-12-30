@@ -184,11 +184,11 @@ const App = () => {
 
       switch (error.code) {
         case 1: // PERMISSION_DENIED
-          const userAgent = navigator.userAgent || navigator.vendor;
-          if (/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream) {
-            errorMessage = '⚠️ iOS: Ve a Ajustes > Privacidad > Localización > Safari y selecciona "Cuando se use".';
-          } else if (/android/i.test(userAgent)) {
+          const ua = navigator.userAgent.toLowerCase();
+          if (ua.includes("android")) {
             errorMessage = '⚠️ Android: Ve a Configuración > Sitio > Permisos y activa la Ubicación.';
+          } else if (ua.includes("iphone") || ua.includes("ipad") || ua.includes("ipod")) {
+            errorMessage = '⚠️ iOS: Ve a Ajustes > Privacidad > Localización > Safari y selecciona "Cuando se use".';
           } else {
             errorMessage = '⚠️ Bloqueado: Haz clic en el ícono de configuración/candado en la barra de dirección para activar la ubicación.';
           }
