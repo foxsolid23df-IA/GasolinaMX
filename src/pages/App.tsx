@@ -184,7 +184,14 @@ const App = () => {
 
       switch (error.code) {
         case 1: // PERMISSION_DENIED
-          errorMessage = 'Acceso a ubicación bloqueado. Ve a Configuración > Privacidad > Localización en tu dispositivo para permitirlo.';
+          const userAgent = navigator.userAgent || navigator.vendor;
+          if (/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream) {
+            errorMessage = '⚠️ iOS: Ve a Ajustes > Privacidad > Localización > Safari y selecciona "Cuando se use".';
+          } else if (/android/i.test(userAgent)) {
+            errorMessage = '⚠️ Android: Ve a Configuración > Sitio > Permisos y activa la Ubicación.';
+          } else {
+            errorMessage = '⚠️ Bloqueado: Haz clic en el ícono de configuración/candado en la barra de dirección para activar la ubicación.';
+          }
           break;
         case 2: // POSITION_UNAVAILABLE
           errorMessage = 'Ubicación no disponible.';
