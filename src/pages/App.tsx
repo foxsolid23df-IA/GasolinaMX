@@ -138,6 +138,13 @@ const App = () => {
     }
 
     setIsLoading(true);
+
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    };
+
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const location: [number, number] = [position.coords.latitude, position.coords.longitude];
@@ -150,13 +157,29 @@ const App = () => {
         setStations(processed);
 
         setIsLoading(false);
-        toast.success(`${processed.length} gasolineras encontradas`);
+        toast.success(`${processed.length} gasolineras encontradas cerca de ti`);
         scrollToResults();
       },
       (error) => {
         setIsLoading(false);
-        toast.error('No se pudo obtener tu ubicación');
-      }
+        let errorMessage = 'No se pudo obtener tu ubicación';
+
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Permiso denegado. Por favor habilita la ubicación en tu navegador.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'La información de ubicación no está disponible.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Se agotó el tiempo de espera. Inténtalo de nuevo.';
+            break;
+        }
+
+        console.error("Error de geolocalización:", error);
+        toast.error(errorMessage);
+      },
+      options
     );
   };
 
