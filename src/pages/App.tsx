@@ -195,7 +195,7 @@ const App = () => {
       }
 
       console.error("Error crítico de geolocalización:", error);
-      toast.error(errorMessage);
+      toast.error(errorMessage, { duration: 30000 });
     }
   };
 
