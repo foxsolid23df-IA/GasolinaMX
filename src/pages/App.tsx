@@ -184,7 +184,7 @@ const App = () => {
 
       switch (error.code) {
         case 1: // PERMISSION_DENIED
-          errorMessage = 'Permiso denegado. Verifica la configuración de tu navegador.';
+          errorMessage = 'Acceso a ubicación bloqueado. Ve a Configuración > Privacidad > Localización en tu dispositivo para permitirlo.';
           break;
         case 2: // POSITION_UNAVAILABLE
           errorMessage = 'Ubicación no disponible.';
