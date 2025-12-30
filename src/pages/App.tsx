@@ -131,7 +131,7 @@ const App = () => {
     return filtered;
   };
 
-  const handleGeolocate = () => {
+  const handleGeolocate = async () => {
     if (!navigator.geolocation) {
       toast.error('Tu navegador no soporta geolocalización');
       return;
@@ -139,48 +139,64 @@ const App = () => {
 
     setIsLoading(true);
 
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0
+    const getPosition = (options?: PositionOptions): Promise<GeolocationPosition> => {
+      return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, options);
+      });
     };
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const location: [number, number] = [position.coords.latitude, position.coords.longitude];
-        setUserLocation(location);
+    try {
+      let position: GeolocationPosition;
 
-        const data = await fetchStationsData();
-        setAllStations(data);
+      try {
+        // Intento 1: Alta precisión (GPS) con timeout corto (5s)
+        position = await getPosition({
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        });
+      } catch (error) {
+        console.warn("Fallo GPS alta precisión, intentando baja precisión...", error);
+        // Intento 2: Baja precisión (Wifi/Celdas) con timeout más largo (10s)
+        position = await getPosition({
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 0
+        });
+      }
 
-        const processed = processStations(data, location);
-        setStations(processed);
+      const location: [number, number] = [position.coords.latitude, position.coords.longitude];
+      setUserLocation(location);
 
-        setIsLoading(false);
-        toast.success(`${processed.length} gasolineras encontradas cerca de ti`);
-        scrollToResults();
-      },
-      (error) => {
-        setIsLoading(false);
-        let errorMessage = 'No se pudo obtener tu ubicación';
+      const data = await fetchStationsData();
+      setAllStations(data);
 
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            errorMessage = 'Permiso denegado. Por favor habilita la ubicación en tu navegador.';
-            break;
-          case error.POSITION_UNAVAILABLE:
-            errorMessage = 'La información de ubicación no está disponible.';
-            break;
-          case error.TIMEOUT:
-            errorMessage = 'Se agotó el tiempo de espera. Inténtalo de nuevo.';
-            break;
-        }
+      const processed = processStations(data, location);
+      setStations(processed);
 
-        console.error("Error de geolocalización:", error);
-        toast.error(errorMessage);
-      },
-      options
-    );
+      setIsLoading(false);
+      toast.success(`${processed.length} gasolineras encontradas cerca de ti`);
+      scrollToResults();
+
+    } catch (error: any) {
+      setIsLoading(false);
+      let errorMessage = 'No se pudo obtener tu ubicación';
+
+      switch (error.code) {
+        case 1: // PERMISSION_DENIED
+          errorMessage = 'Permiso denegado. Verifica la configuración de tu navegador.';
+          break;
+        case 2: // POSITION_UNAVAILABLE
+          errorMessage = 'Ubicación no disponible.';
+          break;
+        case 3: // TIMEOUT
+          errorMessage = 'Se agotó el tiempo de espera. Intenta buscar manualmente.';
+          break;
+      }
+
+      console.error("Error crítico de geolocalización:", error);
+      toast.error(errorMessage);
+    }
   };
 
   const handleSearch = async (address: string) => {
