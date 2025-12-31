@@ -129,7 +129,7 @@ export const MapComponent = ({ stations, center, zoom = 13, radius = 10 }: MapCo
               <h3 class="font-bold text-lg mb-1">${station.name}</h3>
               <p class="text-sm text-gray-600 mb-2">${station.address}</p>
               <div class="text-2xl font-bold" style="color: hsl(263, 70%, 60%)">
-                ${station.price.toFixed(3)}€/L
+                $${station.price.toFixed(2)} /L
               </div>
             </div>
           `);
